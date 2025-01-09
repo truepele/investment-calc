@@ -1,138 +1,488 @@
-import type { MetaFunction } from "@remix-run/cloudflare";
+import { Form, useActionData, useNavigation } from "@remix-run/react";
+import type { ActionFunction } from "@remix-run/cloudflare";
+import { json } from "@remix-run/cloudflare";
 
-export const meta: MetaFunction = () => {
-  return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
-  ];
-};
+function calculatePropertyTransferTax(
+  purchasePrice: number,
+  pttThreshold: number,
+  pttRateUntilThreshold: number,
+  pttRateAboveThreshold: number
+) {
+  if (purchasePrice <= pttThreshold) {
+    return purchasePrice * pttRateUntilThreshold;
+  } else {
+    const taxUntilThreshold = pttThreshold * pttRateUntilThreshold;
+    const taxAboveThreshold = (purchasePrice - pttThreshold) * pttRateAboveThreshold;
+    return taxUntilThreshold + taxAboveThreshold;
+  }
+}
 
-export default function Index() {
+function calculateRealtorFeeOnSale(
+  sellingPrice: number,
+  realtorThreshold: number,
+  realtorRateUntilThreshold: number,
+  realtorRateAboveThreshold: number
+) {
+  if (sellingPrice <= realtorThreshold) {
+    return sellingPrice * realtorRateUntilThreshold;
+  } else {
+    const feeUntilThreshold = realtorThreshold * realtorRateUntilThreshold;
+    const feeAboveThreshold =
+      (sellingPrice - realtorThreshold) * realtorRateAboveThreshold;
+    return feeUntilThreshold + feeAboveThreshold;
+  }
+}
+
+function getMonthlyMortgagePayment(
+  principal: number,
+  annualInterestRate: number,
+  amortizationYears: number
+) {
+  const monthlyInterestRate = annualInterestRate / 12.0;
+  const totalPayments = amortizationYears * 12;
+
+  if (monthlyInterestRate === 0) {
+    // Edge case: zero interest
+    return principal / totalPayments;
+  }
+
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="flex flex-col items-center gap-16">
-        <header className="flex flex-col items-center gap-9">
-          <h1 className="leading text-2xl font-bold text-gray-800 dark:text-gray-100">
-            Welcome to <span className="sr-only">Remix</span>
-          </h1>
-          <div className="h-[144px] w-[434px]">
-            <img
-              src="/logo-light.png"
-              alt="Remix"
-              className="block w-full dark:hidden"
-            />
-            <img
-              src="/logo-dark.png"
-              alt="Remix"
-              className="hidden w-full dark:block"
-            />
-          </div>
-        </header>
-        <nav className="flex flex-col items-center justify-center gap-4 rounded-3xl border border-gray-200 p-6 dark:border-gray-700">
-          <p className="leading-6 text-gray-700 dark:text-gray-200">
-            What&apos;s next?
-          </p>
-          <ul>
-            {resources.map(({ href, text, icon }) => (
-              <li key={href}>
-                <a
-                  className="group flex items-center gap-3 self-stretch p-3 leading-normal text-blue-700 hover:underline dark:text-blue-500"
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {icon}
-                  {text}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-    </div>
+    (principal * monthlyInterestRate) /
+    (1 - Math.pow(1 + monthlyInterestRate, -totalPayments))
   );
 }
 
-const resources = [
-  {
-    href: "https://remix.run/start/quickstart",
-    text: "Quick Start (5 min)",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        className="stroke-gray-600 group-hover:stroke-current dark:stroke-gray-300"
-      >
-        <path
-          d="M8.51851 12.0741L7.92592 18L15.6296 9.7037L11.4815 7.33333L12.0741 2L4.37036 10.2963L8.51851 12.0741Z"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "https://remix.run/start/tutorial",
-    text: "Tutorial (30 min)",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        className="stroke-gray-600 group-hover:stroke-current dark:stroke-gray-300"
-      >
-        <path
-          d="M4.561 12.749L3.15503 14.1549M3.00811 8.99944H1.01978M3.15503 3.84489L4.561 5.2508M8.3107 1.70923L8.3107 3.69749M13.4655 3.84489L12.0595 5.2508M18.1868 17.0974L16.635 18.6491C16.4636 18.8205 16.1858 18.8205 16.0144 18.6491L13.568 16.2028C13.383 16.0178 13.0784 16.0347 12.915 16.239L11.2697 18.2956C11.047 18.5739 10.6029 18.4847 10.505 18.142L7.85215 8.85711C7.75756 8.52603 8.06365 8.21994 8.39472 8.31453L17.6796 10.9673C18.0223 11.0653 18.1115 11.5094 17.8332 11.7321L15.7766 13.3773C15.5723 13.5408 15.5554 13.8454 15.7404 14.0304L18.1868 16.4767C18.3582 16.6481 18.3582 16.926 18.1868 17.0974Z"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "https://remix.run/docs",
-    text: "Remix Docs",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        className="stroke-gray-600 group-hover:stroke-current dark:stroke-gray-300"
-      >
-        <path
-          d="M9.99981 10.0751V9.99992M17.4688 17.4688C15.889 19.0485 11.2645 16.9853 7.13958 12.8604C3.01467 8.73546 0.951405 4.11091 2.53116 2.53116C4.11091 0.951405 8.73546 3.01467 12.8604 7.13958C16.9853 11.2645 19.0485 15.889 17.4688 17.4688ZM2.53132 17.4688C0.951566 15.8891 3.01483 11.2645 7.13974 7.13963C11.2647 3.01471 15.8892 0.951453 17.469 2.53121C19.0487 4.11096 16.9854 8.73551 12.8605 12.8604C8.73562 16.9853 4.11107 19.0486 2.53132 17.4688Z"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "https://rmx.as/discord",
-    text: "Join Discord",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="20"
-        viewBox="0 0 24 20"
-        fill="none"
-        className="stroke-gray-600 group-hover:stroke-current dark:stroke-gray-300"
-      >
-        <path
-          d="M15.0686 1.25995L14.5477 1.17423L14.2913 1.63578C14.1754 1.84439 14.0545 2.08275 13.9422 2.31963C12.6461 2.16488 11.3406 2.16505 10.0445 2.32014C9.92822 2.08178 9.80478 1.84975 9.67412 1.62413L9.41449 1.17584L8.90333 1.25995C7.33547 1.51794 5.80717 1.99419 4.37748 2.66939L4.19 2.75793L4.07461 2.93019C1.23864 7.16437 0.46302 11.3053 0.838165 15.3924L0.868838 15.7266L1.13844 15.9264C2.81818 17.1714 4.68053 18.1233 6.68582 18.719L7.18892 18.8684L7.50166 18.4469C7.96179 17.8268 8.36504 17.1824 8.709 16.4944L8.71099 16.4904C10.8645 17.0471 13.128 17.0485 15.2821 16.4947C15.6261 17.1826 16.0293 17.8269 16.4892 18.4469L16.805 18.8725L17.3116 18.717C19.3056 18.105 21.1876 17.1751 22.8559 15.9238L23.1224 15.724L23.1528 15.3923C23.5873 10.6524 22.3579 6.53306 19.8947 2.90714L19.7759 2.73227L19.5833 2.64518C18.1437 1.99439 16.6386 1.51826 15.0686 1.25995ZM16.6074 10.7755L16.6074 10.7756C16.5934 11.6409 16.0212 12.1444 15.4783 12.1444C14.9297 12.1444 14.3493 11.6173 14.3493 10.7877C14.3493 9.94885 14.9378 9.41192 15.4783 9.41192C16.0471 9.41192 16.6209 9.93851 16.6074 10.7755ZM8.49373 12.1444C7.94513 12.1444 7.36471 11.6173 7.36471 10.7877C7.36471 9.94885 7.95323 9.41192 8.49373 9.41192C9.06038 9.41192 9.63892 9.93712 9.6417 10.7815C9.62517 11.6239 9.05462 12.1444 8.49373 12.1444Z"
-          strokeWidth="1.5"
-        />
-      </svg>
-    ),
-  },
-];
+/**
+ * Returns:
+ *  - monthlyPayment
+ *  - totalInterestPaid
+ *  - principalPaid
+ */
+function calculateMortgageInterestTotal(
+  principal: number,
+  annualInterestRate: number,
+  amortizationYears: number,
+  yearsBeforeSelling: number
+) {
+  const monthlyPayment = getMonthlyMortgagePayment(
+    principal,
+    annualInterestRate,
+    amortizationYears
+  );
+
+  const monthlyInterestRate = annualInterestRate / 12.0;
+  const monthsBeforeSelling = yearsBeforeSelling * 12;
+
+  let totalInterestPaid = 0.0;
+  let currentBalance = principal;
+
+  for (let i = 0; i < monthsBeforeSelling; i++) {
+    if (currentBalance <= 0) {
+      break; // loan fully paid off
+    }
+    // interest for this month
+    const interestForMonth = currentBalance * monthlyInterestRate;
+    // principal portion for this month
+    let principalForMonth = monthlyPayment - interestForMonth;
+    if (principalForMonth > currentBalance) {
+      principalForMonth = currentBalance;
+    }
+    totalInterestPaid += interestForMonth;
+    currentBalance -= principalForMonth;
+  }
+
+  const principalPaid = principal - currentBalance;
+  return { monthlyPayment, totalInterestPaid, principalPaid };
+}
+
+export const action: ActionFunction = async ({ request }) => {
+  const formData = await request.formData();
+
+  // Collect all the inputs (strings), then parse to float/int.
+  // Note: defaulting to 0 if not provided or invalid.
+  function f(field: string) {
+    return parseFloat(formData.get(field)?.toString() || "0");
+  }
+
+  const inflationRate = f("inflation_rate");
+  const yearlyAppreciationRate = f("yearly_appreciation_rate");
+  const developmentYears = f("development_years");
+  const rentYears = f("rent_years");
+  const amortizationYears = f("amortization_years");
+  const mortgageRate = f("mortgage_rate");
+
+  const realtorFeeRateThreshold = f("realtor_fee_rate_threshold");
+  const realtorFeeRateUntilThreshold = f("realtor_fee_rate_until_threshold");
+  const realtorFeeRateAboveThreshold = f("realtor_fee_rate_above_threshold");
+
+  const propertyTransferTaxRateThreshold = f("property_transfer_tax_rate_threshold");
+  const propertyTransferTaxRateUntilThreshold = f("property_transfer_tax_rate_until_threshold");
+  const propertyTransferTaxRateAboveThreshold = f("property_transfer_tax_rate_above_threshold");
+
+  const marginalTaxRate = f("marginal_tax_rate");
+  const startingRentPerMonth = f("starting_rent_per_month");
+  const purchasePriceListing = f("purchase_price_listing");
+  const downpaymentPercent = f("downpayment_percent");
+
+  const closingLegalNotaryFees = f("closing_legal_notary_fees");
+  const sellingLegalNotaryFees = f("selling_legal_notary_fees");
+
+  const maintenanceRepairsMonthly = f("maintenance_repairs_monthly");
+  const strataFeeMonthly = f("strata_fee_monthly");
+  const insuranceMonthly = f("insurance_monthly");
+  const gstRate = f("gst_rate");
+  const propertyTaxYearly = f("property_tax_yearly");
+
+  // 3.1
+  const gstOnPurchase = purchasePriceListing * gstRate;
+  const totalPurchasePriceWithGst = purchasePriceListing + gstOnPurchase;
+
+  // 3.2
+  const downpayment = totalPurchasePriceWithGst * downpaymentPercent;
+
+  // 3.3
+  const mortgageAmount = totalPurchasePriceWithGst - downpayment;
+
+  // 3.4
+  const totalInvestmentYears = developmentYears + rentYears;
+  const sellPrice =
+    purchasePriceListing * Math.pow(1 + yearlyAppreciationRate, totalInvestmentYears);
+
+  // 3.5
+  const propertyTransferTax = calculatePropertyTransferTax(
+    purchasePriceListing,
+    propertyTransferTaxRateThreshold,
+    propertyTransferTaxRateUntilThreshold,
+    propertyTransferTaxRateAboveThreshold
+  );
+  const totalClosingCosts = closingLegalNotaryFees + propertyTransferTax;
+
+  // 3.6
+  const adjustedCostBase = totalPurchasePriceWithGst + totalClosingCosts;
+
+  // 3.8.5 Mortgage interest total
+  const { monthlyPayment, totalInterestPaid, principalPaid } =
+    calculateMortgageInterestTotal(
+      mortgageAmount,
+      mortgageRate,
+      amortizationYears,
+      rentYears
+    );
+  const remainingPrincipal = mortgageAmount - principalPaid;
+
+  // 3.7
+  const realtorFeeOnSale = calculateRealtorFeeOnSale(
+    sellPrice,
+    realtorFeeRateThreshold,
+    realtorFeeRateUntilThreshold,
+    realtorFeeRateAboveThreshold
+  );
+  const sellingLegalNotary = sellingLegalNotaryFees;
+  const varMortgageTermination = monthlyPayment * 2 * 0.7;
+  const totalSellingCosts = realtorFeeOnSale + sellingLegalNotary + varMortgageTermination;
+
+  // 3.8
+  const oneTimeRentRealtorFee = startingRentPerMonth * 0.5;
+  const maintenanceRepairsTotal = maintenanceRepairsMonthly * 12 * rentYears;
+  const strataFeeTotal = strataFeeMonthly * 12 * rentYears;
+  const insuranceTotal = insuranceMonthly * 12 * rentYears;
+  const propertyTaxTotal = propertyTaxYearly * rentYears;
+
+  // 3.9 (simple approach)
+  const grossRentalIncomeTotal = startingRentPerMonth * 12 * rentYears;
+
+  // 3.10
+  const totalOwningCostsDuringRent =
+    oneTimeRentRealtorFee +
+    maintenanceRepairsTotal +
+    strataFeeTotal +
+    insuranceTotal +
+    totalInterestPaid +
+    propertyTaxTotal;
+
+  const netRentalIncomeTotal = grossRentalIncomeTotal - totalOwningCostsDuringRent;
+
+  // 3.11
+  const capitalGain = sellPrice - totalSellingCosts - adjustedCostBase;
+
+  // 3.12
+  const netCapitalGainAfterTax = capitalGain - (capitalGain / 2) * marginalTaxRate;
+
+  // 3.13
+  const investedAmount = downpayment + totalClosingCosts;
+
+  // 3.14
+  const netProfit = netCapitalGainAfterTax + netRentalIncomeTotal;
+
+  // 3.15
+  const inflationFactor = Math.pow(1 + inflationRate, totalInvestmentYears);
+  const inflationAdjustedNetProfit = netProfit / inflationFactor;
+
+  // 3.16
+  const roiRate = netProfit / investedAmount;
+
+  // 3.17
+  const inflationAdjustedRoiRate = inflationAdjustedNetProfit / investedAmount;
+
+  // 3.18
+  let avgYearlyRoiRate = 0;
+  if (totalInvestmentYears > 0) {
+    avgYearlyRoiRate = Math.pow(1 + roiRate, 1 / totalInvestmentYears) - 1;
+  }
+
+  // 3.19
+  let inflationAdjustedAvgYearlyRoiRate = 0;
+  if (totalInvestmentYears > 0) {
+    inflationAdjustedAvgYearlyRoiRate =
+      Math.pow(1 + inflationAdjustedRoiRate, 1 / totalInvestmentYears) - 1;
+  }
+
+  // Prepare results for client
+  const results = {
+    purchasePriceListing,
+    totalPurchasePriceWithGst,
+    downpayment,
+    mortgageAmount,
+    monthlyPayment,
+    totalInterestPaid,
+    sellPrice,
+    totalClosingCosts,
+    propertyTransferTax,
+    closingLegalNotaryFees,
+    adjustedCostBase,
+    totalSellingCosts,
+    realtorFeeOnSale,
+    sellingLegalNotary,
+    varMortgageTermination,
+    oneTimeRentRealtorFee,
+    maintenanceRepairsTotal,
+    strataFeeTotal,
+    insuranceTotal,
+    propertyTaxTotal,
+    grossRentalIncomeTotal,
+    netRentalIncomeTotal,
+    capitalGain,
+    netCapitalGainAfterTax,
+    investedAmount,
+    netProfit,
+    inflationAdjustedNetProfit,
+    roiRate,
+    inflationAdjustedRoiRate,
+    avgYearlyRoiRate,
+    inflationAdjustedAvgYearlyRoiRate,
+    principalPaid,
+    remainingPrincipal
+  };
+
+  return json(results);
+};
+
+export default function Index() {
+  const data = useActionData<typeof action>();
+  const navigation = useNavigation();
+
+  return (
+    <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+      <h1>Real Estate Purchase / Investment Calculator</h1>
+
+      {/* 
+        Mode selection: Future expansion for "Primary Residence" vs "Investment".
+        We won't do anything special in the calculations for now, 
+        but we can store the selection for future use.
+      */}
+      <label>
+        Select Mode:{" "}
+        <select name="mode" disabled>
+          <option value="investment">Investment Property</option>
+          <option value="primary">Primary Residence</option>
+        </select>
+      </label>
+
+      <Form method="post" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <label>
+          Purchase Price Listing:
+          <input type="number" step="any" name="purchase_price_listing" defaultValue="500000" />
+        </label>
+        <label>
+          GST Rate (decimal):
+          <input type="number" step="any" name="gst_rate" defaultValue="0.05" />
+        </label>
+        <label>
+          Downpayment % (decimal):
+          <input type="number" step="any" name="downpayment_percent" defaultValue="0.20" />
+        </label>
+        <label>
+          Mortgage Rate (decimal):
+          <input type="number" step="any" name="mortgage_rate" defaultValue="0.05" />
+        </label>
+        <label>
+          Amortization Years:
+          <input type="number" step="1" name="amortization_years" defaultValue="25" />
+        </label>
+        <label>
+          Development Years:
+          <input type="number" step="1" name="development_years" defaultValue="2" />
+        </label>
+        <label>
+          Rent Years:
+          <input type="number" step="1" name="rent_years" defaultValue="3" />
+        </label>
+        <label>
+          Yearly Appreciation Rate (decimal):
+          <input type="number" step="any" name="yearly_appreciation_rate" defaultValue="0.03" />
+        </label>
+        <label>
+          Inflation Rate (decimal):
+          <input type="number" step="any" name="inflation_rate" defaultValue="0.02" />
+        </label>
+        <label>
+          Marginal Tax Rate (decimal):
+          <input type="number" step="any" name="marginal_tax_rate" defaultValue="0.35" />
+        </label>
+
+        <label>
+          Realtor Fee Rate Threshold:
+          <input type="number" step="any" name="realtor_fee_rate_threshold" defaultValue="100000" />
+        </label>
+        <label>
+          Realtor Fee Rate Until Threshold (decimal):
+          <input
+            type="number"
+            step="any"
+            name="realtor_fee_rate_until_threshold"
+            defaultValue="0.03"
+          />
+        </label>
+        <label>
+          Realtor Fee Rate Above Threshold (decimal):
+          <input
+            type="number"
+            step="any"
+            name="realtor_fee_rate_above_threshold"
+            defaultValue="0.025"
+          />
+        </label>
+
+        <label>
+          Property Transfer Tax Rate Threshold:
+          <input
+            type="number"
+            step="any"
+            name="property_transfer_tax_rate_threshold"
+            defaultValue="200000"
+          />
+        </label>
+        <label>
+          Property Transfer Tax Rate Until Threshold (decimal):
+          <input
+            type="number"
+            step="any"
+            name="property_transfer_tax_rate_until_threshold"
+            defaultValue="0.01"
+          />
+        </label>
+        <label>
+          Property Transfer Tax Rate Above Threshold (decimal):
+          <input
+            type="number"
+            step="any"
+            name="property_transfer_tax_rate_above_threshold"
+            defaultValue="0.02"
+          />
+        </label>
+
+        <label>
+          Starting Rent Per Month:
+          <input type="number" step="any" name="starting_rent_per_month" defaultValue="1800" />
+        </label>
+        <label>
+          Closing Legal/Notary Fees (purchase):
+          <input type="number" step="any" name="closing_legal_notary_fees" defaultValue="1200" />
+        </label>
+        <label>
+          Selling Legal/Notary Fees:
+          <input type="number" step="any" name="selling_legal_notary_fees" defaultValue="1000" />
+        </label>
+        <label>
+          Maintenance/Repairs Monthly:
+          <input type="number" step="any" name="maintenance_repairs_monthly" defaultValue="80" />
+        </label>
+        <label>
+          Strata Fee Monthly:
+          <input type="number" step="any" name="strata_fee_monthly" defaultValue="250" />
+        </label>
+        <label>
+          Insurance Monthly:
+          <input type="number" step="any" name="insurance_monthly" defaultValue="40" />
+        </label>
+        <label>
+          Property Tax Yearly:
+          <input type="number" step="any" name="property_tax_yearly" defaultValue="2500" />
+        </label>
+
+        <button disabled={navigation.state === "submitting"}>
+          {navigation.state === "submitting" ? "Calculating..." : "Calculate"}
+        </button>
+      </Form>
+
+      {data && (
+        <div style={{ marginTop: 20 }}>
+          <h2>Results</h2>
+          <p>=== REAL ESTATE INVESTMENT ANALYSIS ===</p>
+          <p>Downpayment: ${data.downpayment.toFixed(2)}</p>
+          <p>Mortgage Amount: ${data.mortgageAmount.toFixed(2)}</p>
+          <p>Monthly Mortgage Payment: ${data.monthlyPayment.toFixed(2)}</p>
+          <p>Mortgage Interest Total: ${data.totalInterestPaid.toFixed(2)}</p>
+          <p>Total Purchase Price w/ GST: ${data.totalPurchasePriceWithGst.toFixed(2)}</p>
+          <p>Selling Price (after appreciation): ${data.sellPrice.toFixed(2)}</p>
+          <br />
+          <p>Closing Costs (purchase): ${data.totalClosingCosts.toFixed(2)}</p>
+          <p> - Property Transfer Tax: ${data.propertyTransferTax.toFixed(2)}</p>
+          <p> - Legal/Notary on purchase: ${data.closingLegalNotaryFees.toFixed(2)}</p>
+          <br />
+          <p>Adjusted Cost Base: ${data.adjustedCostBase.toFixed(2)}</p>
+          <br />
+          <p>Selling Costs (total): ${data.totalSellingCosts.toFixed(2)}</p>
+          <p> - Realtor Fee on sale: ${data.realtorFeeOnSale.toFixed(2)}</p>
+          <p> - Legal/Notary on sale: ${data.sellingLegalNotary.toFixed(2)}</p>
+          <p> - Mortgage termination (approx): ${data.varMortgageTermination.toFixed(2)}</p>
+          <br />
+          <p>=== OWNING COSTS DURING RENT YEARS ===</p>
+          <p>One-time rent realtor fee: ${data.oneTimeRentRealtorFee.toFixed(2)}</p>
+          <p>Maintenance/repairs total: ${data.maintenanceRepairsTotal.toFixed(2)}</p>
+          <p>Strata fee total: ${data.strataFeeTotal.toFixed(2)}</p>
+          <p>Insurance total: ${data.insuranceTotal.toFixed(2)}</p>
+          <p>Mortgage interest total: ${data.totalInterestPaid.toFixed(2)}</p>
+          <p>Property tax total: ${data.propertyTaxTotal.toFixed(2)}</p>
+          <br />
+          <p>=== RENTAL INCOME ===</p>
+          <p>Gross rental income: ${data.grossRentalIncomeTotal.toFixed(2)}</p>
+          <p>Net rental income: ${data.netRentalIncomeTotal.toFixed(2)}</p>
+          <br />
+          <p>=== CAPITAL GAIN ===</p>
+          <p>Capital gain: ${data.capitalGain.toFixed(2)}</p>
+          <p>Net capital gain after tax: ${data.netCapitalGainAfterTax.toFixed(2)}</p>
+          <br />
+          <p>=== INVESTMENT RETURNS ===</p>
+          <p>Invested amount: ${data.investedAmount.toFixed(2)}</p>
+          <p>Net profit (Cap. gain + Rent): ${data.netProfit.toFixed(2)}</p>
+          <p>
+            Inflation-adjusted net profit: $
+            {data.inflationAdjustedNetProfit.toFixed(2)}
+          </p>
+          <p>ROI rate: {(data.roiRate * 100).toFixed(2)}%</p>
+          <p>
+            Infl.-adjusted ROI rate: {(data.inflationAdjustedRoiRate * 100).toFixed(2)}%
+          </p>
+          <p>Avg yearly ROI rate: {(data.avgYearlyRoiRate * 100).toFixed(2)}%</p>
+          <p>
+            Infl.-adjusted avg yearly ROI:{" "}
+            {(data.inflationAdjustedAvgYearlyRoiRate * 100).toFixed(2)}%
+          </p>
+          <p>Mortgage principal repaid: ${data.principalPaid.toFixed(2)}</p>
+          <p>Remaining Mortgage principal: ${data.remainingPrincipal.toFixed(2)}</p>
+        </div>
+      )}
+    </div>
+  );
+}
