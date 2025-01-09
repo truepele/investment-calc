@@ -55,12 +55,12 @@ export default function Index() {
               <LabeledInput
                 label="Yearly Appreciation Rate (decimal)"
                 name="yearly_appreciation_rate"
-                defaultValue="0.03"
+                defaultValue="0.04"
               />
               <LabeledInput
                 label="Inflation Rate (decimal)"
                 name="inflation_rate"
-                defaultValue="0.02"
+                defaultValue="0.04"
               />
             </CollapsibleSection>
 
@@ -101,7 +101,7 @@ export default function Index() {
               <LabeledInput
                 label="Realtor Fee Rate Until Threshold (decimal)"
                 name="realtor_fee_rate_until_threshold"
-                defaultValue="0.03"
+                defaultValue="0.07"
               />
               <LabeledInput
                 label="Realtor Fee Rate Above Threshold (decimal)"
@@ -126,12 +126,12 @@ export default function Index() {
               <LabeledInput
                 label="Closing Legal/Notary Fees (purchase)"
                 name="closing_legal_notary_fees"
-                defaultValue="1200"
+                defaultValue="2000"
               />
               <LabeledInput
                 label="Selling Legal/Notary Fees"
                 name="selling_legal_notary_fees"
-                defaultValue="1000"
+                defaultValue="2000"
               />
             </CollapsibleSection>
 
@@ -144,7 +144,7 @@ export default function Index() {
               <LabeledInput
                 label="Maintenance/Repairs Monthly"
                 name="maintenance_repairs_monthly"
-                defaultValue="80"
+                defaultValue="50"
               />
               <LabeledInput
                 label="Strata Fee Monthly"
@@ -154,12 +154,12 @@ export default function Index() {
               <LabeledInput
                 label="Insurance Monthly"
                 name="insurance_monthly"
-                defaultValue="40"
+                defaultValue="50"
               />
               <LabeledInput
                 label="Property Tax Yearly"
                 name="property_tax_yearly"
-                defaultValue="2500"
+                defaultValue="1500"
               />
             </CollapsibleSection>
 
