@@ -1,7 +1,4 @@
 // app/utils/calc.server.ts
-// (Everything here runs on the server - so you can import from "@remix-run/cloudflare" if needed.)
-
-/** Calculates property transfer tax using threshold logic. */
 export function calculatePropertyTransferTax(
     purchasePrice: number,
     pttThreshold: number,
@@ -17,7 +14,6 @@ export function calculatePropertyTransferTax(
     }
   }
   
-  /** Calculates realtor fee on sale using threshold logic. */
   export function calculateRealtorFeeOnSale(
     sellingPrice: number,
     realtorThreshold: number,
@@ -34,7 +30,6 @@ export function calculatePropertyTransferTax(
     }
   }
   
-  /** Gets the fixed monthly mortgage payment for a standard amortizing mortgage. */
   export function getMonthlyMortgagePayment(
     principal: number,
     annualInterestRate: number,
@@ -47,14 +42,15 @@ export function calculatePropertyTransferTax(
       // Edge case: zero interest
       return principal / totalPayments;
     }
-  
     return (
       (principal * monthlyInterestRate) /
       (1 - Math.pow(1 + monthlyInterestRate, -totalPayments))
     );
   }
   
-  /** Returns (monthlyPayment, totalInterestPaid, principalPaid) after holding X years. */
+  /**
+   * Returns { monthlyPayment, totalInterestPaid, principalPaid }
+   */
   export function calculateMortgageInterestTotal(
     principal: number,
     annualInterestRate: number,
@@ -82,7 +78,6 @@ export function calculatePropertyTransferTax(
       if (principalForMonth > currentBalance) {
         principalForMonth = currentBalance;
       }
-  
       totalInterestPaid += interestForMonth;
       currentBalance -= principalForMonth;
     }
@@ -91,11 +86,11 @@ export function calculatePropertyTransferTax(
     return { monthlyPayment, totalInterestPaid, principalPaid };
   }
   
-  /** 
-   * Helper function that reads form fields, performs all calculations, 
-   * and returns a results object for the route action.
+  /**
+   * Reads all form fields from FormData, runs calculations, and returns an object of results.
    */
   export function runInvestmentCalculations(formData: FormData) {
+    // Helper to parse floats
     function f(field: string) {
       return parseFloat(formData.get(field)?.toString() || "0");
     }
@@ -156,7 +151,7 @@ export function calculatePropertyTransferTax(
     // 3.6
     const adjustedCostBase = totalPurchasePriceWithGst + totalClosingCosts;
   
-    // 3.8.5 Mortgage interest total
+    // Mortgage interest total
     const { monthlyPayment, totalInterestPaid, principalPaid } =
       calculateMortgageInterestTotal(
         mortgageAmount,
@@ -184,7 +179,7 @@ export function calculatePropertyTransferTax(
     const insuranceTotal = insuranceMonthly * 12 * rentYears;
     const propertyTaxTotal = propertyTaxYearly * rentYears;
   
-    // 3.9 (simple approach)
+    // 3.9
     const grossRentalIncomeTotal = startingRentPerMonth * 12 * rentYears;
   
     // 3.10
