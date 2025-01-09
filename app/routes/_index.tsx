@@ -245,7 +245,7 @@ function LabeledInput({
         - Gray background, white text, etc. 
       */}
       <input
-        type="number"
+        type="text"
         step="any"
         name={name}
         defaultValue={defaultValue}
