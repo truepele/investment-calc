@@ -149,7 +149,7 @@ export default function Index() {
               <LabeledInput
                 label="Strata Fee Monthly"
                 name="strata_fee_monthly"
-                defaultValue="250"
+                defaultValue="3000"
               />
               <LabeledInput
                 label="Insurance Monthly"
@@ -159,7 +159,7 @@ export default function Index() {
               <LabeledInput
                 label="Property Tax Yearly"
                 name="property_tax_yearly"
-                defaultValue="1500"
+                defaultValue="2000"
               />
             </CollapsibleSection>
 
