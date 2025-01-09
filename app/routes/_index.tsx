@@ -149,7 +149,7 @@ export default function Index() {
               <LabeledInput
                 label="Strata Fee Monthly"
                 name="strata_fee_monthly"
-                defaultValue="3000"
+                defaultValue="300"
               />
               <LabeledInput
                 label="Insurance Monthly"
